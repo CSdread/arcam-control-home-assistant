@@ -1,0 +1,11 @@
+{
+  "domain": "arcam_avr",
+  "name": "Arcam AVR",
+  "codeowners": ["@CSdread"],
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/arcam_avr",
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "1.0.0",
+  "integration_type": "device"
+}
