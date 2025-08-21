@@ -1,0 +1,1 @@
+"""Arcam AVR integration for Home Assistant."""
