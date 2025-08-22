@@ -1,0 +1,153 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar Arcam AVR",
+        "description": "Configure su receptor Arcam AVR para la integración con Home Assistant.",
+        "data": {
+          "host": "Dirección IP del Host",
+          "port": "Puerto",
+          "name": "Nombre del Dispositivo",
+          "zones": "Zonas a Configurar"
+        },
+        "data_description": {
+          "host": "La dirección IP de su Arcam AVR (ej: 192.168.1.100)",
+          "port": "Puerto TCP para comunicación (predeterminado: 50000)",
+          "name": "Nombre amigable para este dispositivo",
+          "zones": "Seleccione qué zonas configurar (Zona 1 siempre está incluida)"
+        }
+      },
+      "import": {
+        "title": "Importar Configuración Arcam AVR",
+        "description": "Importar una configuración existente de Arcam AVR desde su configuración de Home Assistant."
+      },
+      "discovery": {
+        "title": "Arcam AVR Descubierto",
+        "description": "Encontramos un Arcam AVR en su red. ¿Le gustaría agregarlo a Home Assistant?",
+        "data": {
+          "name": "Nombre del Dispositivo"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar al Arcam AVR. Verifique la dirección IP y asegúrese de que el dispositivo esté encendido y conectado a su red.",
+      "invalid_host": "Formato de dirección IP de host inválido. Ingrese una dirección IPv4 válida (ej: 192.168.1.100).",
+      "invalid_port": "Número de puerto inválido. Ingrese un puerto entre 1 y 65535.",
+      "timeout": "Se agotó el tiempo de conexión. Verifique su conexión de red e intente nuevamente.",
+      "unknown": "Ocurrió un error inesperado al conectar con el Arcam AVR.",
+      "already_configured": "Este dispositivo Arcam AVR ya está configurado en Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Este dispositivo ya está configurado",
+      "cannot_connect": "No se puede conectar al dispositivo",
+      "unknown": "Ocurrió un error desconocido"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones Arcam AVR",
+        "description": "Configure opciones avanzadas para su integración Arcam AVR.",
+        "data": {
+          "update_interval": "Intervalo de Actualización (segundos)",
+          "zones": "Zonas Habilitadas",
+          "fast_polling": "Consulta Rápida Cuando Está Encendido"
+        },
+        "data_description": {
+          "update_interval": "Con qué frecuencia verificar actualizaciones de estado del dispositivo (30-300 segundos)",
+          "zones": "Seleccione qué zonas deberían estar disponibles en Home Assistant",
+          "fast_polling": "Usar consulta más rápida cuando el dispositivo está encendido"
+        }
+      }
+    },
+    "error": {
+      "invalid_update_interval": "El intervalo de actualización debe estar entre 30 y 300 segundos."
+    }
+  },
+  "entity": {
+    "media_player": {
+      "arcam_avr": {
+        "name": "Arcam AVR",
+        "state_attributes": {
+          "source": {
+            "name": "Fuente",
+            "state": {
+              "bd": "Reproductor Blu-ray",
+              "cd": "Reproductor CD",
+              "dvd": "Reproductor DVD",
+              "sat": "Satélite/Cable",
+              "pvr": "PVR/DVR",
+              "vcr": "VCR",
+              "tape": "Deck de Casete",
+              "tuner": "Sintonizador AM/FM",
+              "phono": "Fono/Tocadiscos",
+              "aux": "Entrada Auxiliar",
+              "disp": "Pantalla",
+              "net": "Red/Streaming",
+              "usb": "Entrada USB",
+              "stb": "Decodificador",
+              "follow_main": "Seguir Zona Principal"
+            }
+          },
+          "zone": {
+            "name": "Zona"
+          },
+          "model": {
+            "name": "Modelo"
+          },
+          "version": {
+            "name": "Versión del Firmware"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "connection_error": "No se pudo conectar al Arcam AVR en {host}:{port}",
+    "command_failed": "Comando falló: {command}",
+    "device_not_ready": "El dispositivo no está listo para comandos",
+    "invalid_zone": "Número de zona inválido: {zone}",
+    "invalid_source": "Fuente inválida: {source}",
+    "invalid_volume": "El volumen debe estar entre 0 y 99",
+    "protocol_error": "Error de comunicación del protocolo: {error}",
+    "timeout_error": "El comando se agotó después de {timeout} segundos"
+  },
+  "services": {
+    "set_source": {
+      "name": "Establecer Fuente",
+      "description": "Establecer la fuente de entrada para el Arcam AVR.",
+      "fields": {
+        "entity_id": {
+          "name": "Entidad",
+          "description": "La entidad del reproductor multimedia Arcam AVR."
+        },
+        "source": {
+          "name": "Fuente",
+          "description": "La fuente de entrada a seleccionar."
+        }
+      }
+    },
+    "send_command": {
+      "name": "Enviar Comando",
+      "description": "Enviar un comando directo al Arcam AVR.",
+      "fields": {
+        "entity_id": {
+          "name": "Entidad",
+          "description": "La entidad del reproductor multimedia Arcam AVR."
+        },
+        "command": {
+          "name": "Comando",
+          "description": "El código de comando a enviar (hexadecimal)."
+        },
+        "data": {
+          "name": "Datos",
+          "description": "Parámetro de datos opcional para el comando."
+        },
+        "zone": {
+          "name": "Zona",
+          "description": "Zona objetivo para el comando (predeterminado: 1)."
+        }
+      }
+    }
+  }
+}

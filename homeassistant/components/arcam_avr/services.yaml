@@ -1,0 +1,195 @@
+# Services provided by the Arcam AVR integration
+
+set_source:
+  name: Set Source
+  description: Set the input source for the Arcam AVR.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
+  fields:
+    source:
+      name: Source
+      description: The input source to select (friendly name or device code).
+      required: true
+      example: "Blu-ray Player"
+      selector:
+        select:
+          options:
+            - "Blu-ray Player"
+            - "CD Player"
+            - "DVD Player"
+            - "Satellite/Cable"
+            - "PVR/DVR"
+            - "VCR"
+            - "Tape Deck"
+            - "AM/FM Tuner"
+            - "Phono/Turntable"
+            - "Auxiliary Input"
+            - "Display"
+            - "Network/Streaming"
+            - "USB Input"
+            - "Set-Top Box"
+
+send_command:
+  name: Send Command
+  description: Send a raw command to the Arcam AVR device.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
+  fields:
+    command:
+      name: Command
+      description: The command code to send (hexadecimal format, e.g., "0x01").
+      required: true
+      example: "0x01"
+      selector:
+        text:
+    data:
+      name: Data
+      description: Optional data parameter for the command (0-255).
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+    zone:
+      name: Zone
+      description: Target zone for the command (default: 1).
+      required: false
+      default: 1
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+
+set_zone_source:
+  name: Set Zone Source
+  description: Set the input source for a specific zone.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
+  fields:
+    source:
+      name: Source
+      description: The input source to select.
+      required: true
+      example: "Blu-ray Player"
+      selector:
+        select:
+          options:
+            - "Blu-ray Player"
+            - "CD Player"
+            - "DVD Player"
+            - "Satellite/Cable"
+            - "PVR/DVR"
+            - "VCR"
+            - "Tape Deck"
+            - "AM/FM Tuner"
+            - "Phono/Turntable"
+            - "Auxiliary Input"
+            - "Display"
+            - "Network/Streaming"
+            - "USB Input"
+            - "Set-Top Box"
+            - "Follow Main Zone"
+    zone:
+      name: Zone
+      description: Target zone (1-4).
+      required: true
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+
+set_volume:
+  name: Set Volume
+  description: Set the volume level for the Arcam AVR.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
+  fields:
+    volume:
+      name: Volume
+      description: Volume level (0-99 for device scale, 0.0-1.0 for Home Assistant scale).
+      required: true
+      example: 50
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: box
+    zone:
+      name: Zone
+      description: Target zone (default: 1).
+      required: false
+      default: 1
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+
+toggle_mute:
+  name: Toggle Mute
+  description: Toggle the mute state of the Arcam AVR.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
+  fields:
+    zone:
+      name: Zone
+      description: Target zone (default: 1).
+      required: false
+      default: 1
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+
+power_zone:
+  name: Power Zone
+  description: Control power state of a specific zone.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
+  fields:
+    power:
+      name: Power State
+      description: Turn zone on or off.
+      required: true
+      example: true
+      selector:
+        boolean:
+    zone:
+      name: Zone
+      description: Target zone.
+      required: true
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+
+refresh_status:
+  name: Refresh Status
+  description: Force a refresh of the device status.
+  target:
+    entity:
+      integration: arcam_avr
+      domain: media_player
