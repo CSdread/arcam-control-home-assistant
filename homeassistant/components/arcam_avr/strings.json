@@ -1,0 +1,67 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Arcam AVR",
+        "description": "Configure your Arcam AVR receiver for Home Assistant integration.",
+        "data": {
+          "host": "Host IP Address",
+          "port": "Port",
+          "name": "Device Name",
+          "zones": "Zones to Configure"
+        },
+        "data_description": {
+          "host": "The IP address of your Arcam AVR (e.g., 192.168.1.100)",
+          "port": "TCP port for communication (default: 50000)",
+          "name": "Friendly name for this device",
+          "zones": "Select which zones to configure (Zone 1 is always included)"
+        }
+      },
+      "import": {
+        "title": "Import Arcam AVR Configuration",
+        "description": "Import an existing Arcam AVR configuration from your Home Assistant setup."
+      },
+      "discovery": {
+        "title": "Discovered Arcam AVR",
+        "description": "We found an Arcam AVR on your network. Would you like to add it to Home Assistant?",
+        "data": {
+          "name": "Device Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the Arcam AVR. Please check the IP address and ensure the device is powered on and connected to your network.",
+      "invalid_host": "Invalid host IP address format. Please enter a valid IPv4 address (e.g., 192.168.1.100).",
+      "invalid_port": "Invalid port number. Please enter a port between 1 and 65535.",
+      "timeout": "Connection timed out. Please check your network connection and try again.",
+      "unknown": "An unexpected error occurred while connecting to the Arcam AVR.",
+      "already_configured": "This Arcam AVR device is already configured in Home Assistant."
+    },
+    "abort": {
+      "already_configured": "This device is already configured",
+      "cannot_connect": "Cannot connect to device",
+      "unknown": "Unknown error occurred"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Arcam AVR Options",
+        "description": "Configure advanced options for your Arcam AVR integration.",
+        "data": {
+          "update_interval": "Update Interval (seconds)",
+          "zones": "Enabled Zones",
+          "fast_polling": "Fast Polling When On"
+        },
+        "data_description": {
+          "update_interval": "How often to check for device status updates (30-300 seconds)",
+          "zones": "Select which zones should be available in Home Assistant",
+          "fast_polling": "Use faster polling when the device is powered on"
+        }
+      }
+    },
+    "error": {
+      "invalid_update_interval": "Update interval must be between 30 and 300 seconds."
+    }
+  }
+}
