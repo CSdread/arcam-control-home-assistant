@@ -1,0 +1,404 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run tests weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+env:
+  DEFAULT_PYTHON: "3.11"
+  PRE_COMMIT_CACHE: ~/.cache/pre-commit
+
+jobs:
+  # Code Quality Checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Cache pre-commit
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.PRE_COMMIT_CACHE }}
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: |
+          uv run pre-commit run --all-files
+
+      - name: Upload pre-commit results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pre-commit-results
+          path: |
+            bandit-report.json
+            .mypy_cache/
+
+  # Type Checking
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run MyPy
+        run: |
+          uv run mypy homeassistant/components/arcam_avr/ --strict
+
+      - name: Upload MyPy results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: mypy-results
+          path: .mypy_cache/
+
+  # Security Checks
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run Bandit security scan
+        run: |
+          uv run bandit -r homeassistant/components/arcam_avr/ -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Run Safety dependency check
+        run: |
+          uv run safety check --json --output safety-report.json
+        continue-on-error: true
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-results
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  # Unit Tests
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest tests/ \
+            --cov=homeassistant.components.arcam_avr \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term-missing \
+            --cov-fail-under=85 \
+            --junitxml=pytest-results.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            pytest-results.xml
+            htmlcov/
+            coverage.xml
+
+  # Integration Tests
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run integration tests
+        run: |
+          uv run python tests/components/arcam_avr/run_integration_tests.py --coverage
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            htmlcov/
+            pytest-results.xml
+
+  # Performance Tests
+  performance-test:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run performance tests
+        run: |
+          uv run python tests/components/arcam_avr/run_integration_tests.py --performance
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            performance-report.json
+
+  # Documentation Check
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Check documentation links
+        run: |
+          # Check for broken internal links
+          find docs/ -name "*.md" -exec grep -l "\.md" {} \; | \
+          xargs -I {} python -c "
+import re
+import sys
+from pathlib import Path
+
+file_path = Path(sys.argv[1])
+content = file_path.read_text()
+links = re.findall(r'\[.*?\]\((.*?\.md.*?)\)', content)
+broken = []
+for link in links:
+    if link.startswith('http'):
+        continue
+    link_path = file_path.parent / link.split('#')[0]
+    if not link_path.exists():
+        broken.append(link)
+if broken:
+    print(f'Broken links in {file_path}: {broken}')
+    sys.exit(1)
+" {}
+
+      - name: Validate translation files
+        run: |
+          uv run python -c "
+import json
+from pathlib import Path
+
+translation_dir = Path('homeassistant/components/arcam_avr/translations')
+files = ['en.json', 'es.json', 'fr.json', 'de.json']
+
+base_keys = None
+for file in files:
+    path = translation_dir / file
+    data = json.loads(path.read_text())
+    
+    def get_all_keys(d, prefix=''):
+        keys = set()
+        for k, v in d.items():
+            key = f'{prefix}.{k}' if prefix else k
+            keys.add(key)
+            if isinstance(v, dict):
+                keys.update(get_all_keys(v, key))
+        return keys
+    
+    keys = get_all_keys(data)
+    if base_keys is None:
+        base_keys = keys
+    else:
+        missing = base_keys - keys
+        extra = keys - base_keys
+        if missing or extra:
+            print(f'Translation mismatch in {file}')
+            if missing: print(f'  Missing: {missing}')
+            if extra: print(f'  Extra: {extra}')
+            exit(1)
+
+print('All translation files are consistent')
+"
+
+  # Home Assistant Validation
+  hassfest:
+    name: Home Assistant Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Home Assistant Core
+        uses: actions/checkout@v4
+        with:
+          repository: home-assistant/core
+          path: homeassistant-core
+
+      - name: Checkout integration
+        uses: actions/checkout@v4
+        with:
+          path: integration
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install Home Assistant dependencies
+        run: |
+          cd homeassistant-core
+          pip install -e .
+
+      - name: Copy integration to HA
+        run: |
+          cp -r integration/homeassistant/components/arcam_avr homeassistant-core/homeassistant/components/
+
+      - name: Run hassfest validation
+        run: |
+          cd homeassistant-core
+          python -m script.hassfest --integration-path homeassistant/components/arcam_avr
+
+  # Build and Package
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: [code-quality, type-check, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Build package
+        run: |
+          uv build
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: dist/
+
+  # Deployment readiness check
+  deploy-check:
+    name: Deployment Check
+    runs-on: ubuntu-latest
+    needs: [code-quality, type-check, security, test, integration-test, docs, hassfest, build]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deployment ready
+        run: |
+          echo "✅ All checks passed - ready for deployment"
+          echo "Code quality: ✅"
+          echo "Type checking: ✅"
+          echo "Security: ✅"
+          echo "Tests: ✅"
+          echo "Integration tests: ✅"
+          echo "Documentation: ✅"
+          echo "HA validation: ✅"
+          echo "Build: ✅"

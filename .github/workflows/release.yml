@@ -1,0 +1,344 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  DEFAULT_PYTHON: "3.11"
+
+jobs:
+  # Validate release
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+          if [[ $VERSION == *"alpha"* ]] || [[ $VERSION == *"beta"* ]] || [[ $VERSION == *"rc"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            echo "Expected format: v1.2.3 or v1.2.3-alpha.1"
+            exit 1
+          fi
+
+  # Run full test suite
+  test:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run comprehensive tests
+        run: |
+          uv run pytest tests/ \
+            --cov=homeassistant.components.arcam_avr \
+            --cov-report=xml \
+            --cov-fail-under=85 \
+            --maxfail=0
+
+      - name: Run integration tests
+        run: |
+          uv run python tests/components/arcam_avr/run_integration_tests.py
+
+      - name: Run performance tests
+        run: |
+          uv run python tests/components/arcam_avr/run_integration_tests.py --performance
+
+  # Security scan for release
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run security checks
+        run: |
+          uv run bandit -r homeassistant/components/arcam_avr/ -f json -o bandit-report.json
+          uv run safety check --json --output safety-report.json
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  # Build release packages
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: [validate, test, security]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Update version in manifest
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION_NO_V="${VERSION#v}"
+          
+          # Update manifest.json
+          python -c "
+import json
+with open('homeassistant/components/arcam_avr/manifest.json', 'r') as f:
+    manifest = json.load(f)
+manifest['version'] = '$VERSION_NO_V'
+with open('homeassistant/components/arcam_avr/manifest.json', 'w') as f:
+    json.dump(manifest, f, indent=2)
+"
+
+          # Update pyproject.toml
+          sed -i "s/version = \".*\"/version = \"$VERSION_NO_V\"/" pyproject.toml
+
+      - name: Build package
+        run: |
+          uv build
+
+      - name: Create integration archive
+        run: |
+          cd homeassistant/components
+          zip -r ../../arcam_avr-${{ needs.validate.outputs.version }}.zip arcam_avr/
+          cd ../..
+          
+          # Create HACS-compatible archive
+          mkdir -p hacs_archive/custom_components
+          cp -r homeassistant/components/arcam_avr hacs_archive/custom_components/
+          cd hacs_archive
+          zip -r ../arcam_avr-hacs-${{ needs.validate.outputs.version }}.zip .
+          cd ..
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-packages
+          path: |
+            dist/
+            arcam_avr-*.zip
+
+  # Generate release notes
+  release-notes:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      notes: ${{ steps.notes.outputs.notes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          # Generate changelog
+          if [ -n "$PREV_TAG" ]; then
+            echo "## Changes since $PREV_TAG" > release_notes.md
+            echo "" >> release_notes.md
+            
+            # Get commits since last tag
+            git log $PREV_TAG..HEAD --pretty=format:"- %s" --no-merges >> release_notes.md
+          else
+            echo "## Initial Release" > release_notes.md
+            echo "" >> release_notes.md
+            echo "First release of the Arcam AVR Home Assistant integration." >> release_notes.md
+          fi
+          
+          echo "" >> release_notes.md
+          echo "## Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### HACS Installation" >> release_notes.md
+          echo "1. Download the HACS-compatible archive from the releases page" >> release_notes.md
+          echo "2. Extract to your \`custom_components\` directory" >> release_notes.md
+          echo "3. Restart Home Assistant" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Manual Installation" >> release_notes.md
+          echo "1. Download the integration archive" >> release_notes.md
+          echo "2. Extract to \`config/custom_components/arcam_avr/\`" >> release_notes.md
+          echo "3. Restart Home Assistant" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## Documentation" >> release_notes.md
+          echo "- [User Guide](https://github.com/CSdread/arcam-control-home-assistant/blob/main/docs/user_guide.md)" >> release_notes.md
+          echo "- [Technical Guide](https://github.com/CSdread/arcam-control-home-assistant/blob/main/docs/technical_guide.md)" >> release_notes.md
+          echo "- [Troubleshooting](https://github.com/CSdread/arcam-control-home-assistant/blob/main/docs/troubleshooting.md)" >> release_notes.md
+          
+          # Set output for next step
+          {
+            echo 'notes<<EOF'
+            cat release_notes.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-notes
+          path: release_notes.md
+
+  # Create GitHub release
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, test, security, build, release-notes]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-packages
+          path: ./artifacts
+
+      - name: Download security reports
+        uses: actions/download-artifact@v3
+        with:
+          name: security-reports
+          path: ./security
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body: ${{ needs.release-notes.outputs.notes }}
+          prerelease: ${{ needs.validate.outputs.is_prerelease }}
+          draft: false
+          files: |
+            artifacts/dist/*
+            artifacts/arcam_avr-*.zip
+          generate_release_notes: false
+
+  # Update documentation
+  update-docs:
+    name: Update Documentation
+    runs-on: ubuntu-latest
+    needs: [validate, release]
+    if: needs.validate.outputs.is_prerelease == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update README with latest version
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION_NO_V="${VERSION#v}"
+          
+          # Update README.md with new version references
+          sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/$VERSION/g" README.md
+          
+          # Update installation instructions if needed
+          if [ -f "docs/installation.md" ]; then
+            sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/$VERSION/g" docs/installation.md
+          fi
+
+      - name: Commit documentation updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md docs/
+          git diff --staged --quiet || git commit -m "docs: update version references to ${{ needs.validate.outputs.version }}"
+          git push
+
+  # Notify on completion
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [validate, release, update-docs]
+    if: always()
+    steps:
+      - name: Release success notification
+        if: needs.release.result == 'success'
+        run: |
+          echo "🎉 Release ${{ needs.validate.outputs.version }} created successfully!"
+          echo "📦 Packages available at: https://github.com/CSdread/arcam-control-home-assistant/releases/tag/${{ needs.validate.outputs.version }}"
+          echo "📖 Documentation: https://github.com/CSdread/arcam-control-home-assistant/blob/main/docs/"
+
+      - name: Release failure notification
+        if: needs.release.result == 'failure'
+        run: |
+          echo "❌ Release ${{ needs.validate.outputs.version }} failed!"
+          echo "Check the workflow logs for details."
+          exit 1

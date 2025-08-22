@@ -1,0 +1,93 @@
+MIT License
+
+Copyright (c) 2024 Arcam AVR Integration Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+
+Additional Terms and Acknowledgments:
+
+This software contains code and documentation for integrating Arcam AVR 
+audio/video receivers with Home Assistant. The integration is provided as 
+open source software for the benefit of the Home Assistant community.
+
+Device Protocol License:
+The binary protocol implementation is based on publicly available documentation
+and reverse engineering efforts. No proprietary Arcam intellectual property is
+included in this software. Users must own compatible Arcam devices to use this
+integration.
+
+Third-Party Acknowledgments:
+- Home Assistant framework (Apache License 2.0)
+- Python standard library (Python Software Foundation License)
+- Testing frameworks and development tools (various open source licenses)
+
+Trademark Notice:
+"Arcam" is a trademark of Arcam (Harman International). This software is not
+affiliated with, endorsed by, or sponsored by Arcam or Harman International.
+The integration is provided as an independent, community-developed solution.
+
+Support and Warranty:
+This software is provided on an "AS IS" basis. The authors and contributors
+make no warranties, express or implied, regarding the software's functionality,
+reliability, or suitability for any particular purpose. Users assume all risks
+associated with the use of this software.
+
+No Official Support:
+This integration is not officially supported by Arcam, Harman International, or
+the Home Assistant organization. Support is provided on a best-effort basis by
+the open source community through GitHub issues and discussions.
+
+Limitation of Liability:
+In no event shall the authors, contributors, or copyright holders be liable for
+any direct, indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or services;
+loss of use, data, or profits; or business interruption) however caused and on
+any theory of liability, whether in contract, strict liability, or tort
+(including negligence or otherwise) arising in any way out of the use of this
+software, even if advised of the possibility of such damage.
+
+Device Safety:
+Users are responsible for ensuring the safe operation of their Arcam devices.
+This software sends commands to network-connected audio/video equipment. Users
+should verify that volume levels, power states, and other device settings are
+appropriate for their environment before using automation features.
+
+Privacy and Data Collection:
+This integration operates entirely on the local network and does not collect,
+transmit, or store any personal data outside of the user's Home Assistant
+installation. All device communication remains within the user's local network.
+
+Compliance:
+Users are responsible for ensuring their use of this software complies with all
+applicable local laws and regulations regarding network device control and home
+automation systems.
+
+Source Code Availability:
+The complete source code for this integration is available at:
+https://github.com/CSdread/arcam-control-home-assistant
+
+For questions about licensing, please create an issue on the GitHub repository.
+
+================================================================================
+
+License History:
+
+Version 1.0.0 (2024-01-01): Initial MIT license grant for public release
