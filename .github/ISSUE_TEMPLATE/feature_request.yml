@@ -1,0 +1,223 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for the Arcam AVR integration
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Your ideas help make this integration better.
+        
+        **Before submitting**, please:
+        - Search existing issues to avoid duplicates
+        - Check if the feature already exists in the latest version
+        - Consider if this would benefit other users
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A brief, clear description of the feature you'd like to see
+      placeholder: "Add support for..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What's the current limitation?
+      placeholder: |
+        Currently, users cannot...
+        This makes it difficult to...
+        The limitation is...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution in detail
+      placeholder: |
+        I would like to be able to...
+        The feature should work by...
+        When a user does X, then Y should happen...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe specific scenarios where this feature would be useful
+      placeholder: |
+        Example scenarios:
+        1. When setting up a multi-zone system...
+        2. During movie night automation...
+        3. For users with multiple Arcam devices...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Feature Type
+      description: What type of feature is this?
+      options:
+        - New device support
+        - Additional service/action
+        - UI/UX improvement
+        - Configuration enhancement
+        - Performance optimization
+        - Documentation improvement
+        - Testing/quality improvement
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Important for my use case
+        - Critical - Blocking my use case
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternatives have you considered or tried?
+      placeholder: |
+        I've tried...
+        Alternative approaches could be...
+        Other integrations handle this by...
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: Do you have ideas about how this could be implemented?
+      placeholder: |
+        This could be implemented by...
+        The code changes might involve...
+        Similar features exist in...
+        
+        Note: Don't worry if you're not technical - any ideas help!
+    validations:
+      required: false
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device Model (if applicable)
+      description: Which Arcam model(s) would this feature apply to?
+      placeholder: "AVR11, AVR550, all models, etc."
+    validations:
+      required: false
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration Example
+      description: If this requires configuration, show what it might look like
+      placeholder: |
+        Example configuration:
+        ```yaml
+        arcam_avr:
+          - host: 192.168.1.100
+            new_feature:
+              option1: value1
+              option2: value2
+        ```
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: ui-mockup
+    attributes:
+      label: UI/UX Mockup
+      description: If this involves UI changes, describe or sketch the interface
+      placeholder: |
+        The configuration UI should show...
+        The entity card could display...
+        The service selector would include...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: breaking-change
+    attributes:
+      label: Breaking Change
+      description: Would this feature require breaking changes to existing functionality?
+      options:
+        - "No - Fully backward compatible"
+        - "Minor - Small config changes needed"
+        - "Major - Significant changes required"
+        - "Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: related-features
+    attributes:
+      label: Related Features
+      description: Are there other features that would work well with this one?
+      placeholder: |
+        This would work well with...
+        This could enable future features like...
+        This relates to existing issue #...
+    validations:
+      required: false
+
+  - type: textarea
+    id: user-benefit
+    attributes:
+      label: User Benefit
+      description: How would this feature benefit the broader user community?
+      placeholder: |
+        This would help users who...
+        The main benefits are...
+        This addresses a common need because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information, screenshots, links, or examples
+      placeholder: |
+        Screenshots of similar features...
+        Links to relevant documentation...
+        Examples from other integrations...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues for similar feature requests
+          required: true
+        - label: This feature would benefit other users, not just my specific setup
+          required: true
+        - label: I understand this feature may take time to implement
+          required: true
+        - label: I'm willing to test this feature when it becomes available
+          required: false
+        - label: I'm interested in contributing to the implementation (if applicable)
+          required: false

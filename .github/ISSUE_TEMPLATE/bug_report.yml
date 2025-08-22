@@ -1,0 +1,206 @@
+name: Bug Report
+description: Report a bug to help us improve the Arcam AVR integration
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out this form as completely as possible.
+        
+        **Before submitting**, please:
+        - Search existing issues to avoid duplicates
+        - Check the [troubleshooting guide](https://github.com/CSdread/arcam-control-home-assistant/blob/main/docs/troubleshooting.md)
+        - Ensure you're using the latest version
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the issue
+      placeholder: |
+        1. Go to Settings → Devices & Services
+        2. Click on Arcam AVR integration
+        3. Try to configure zones
+        4. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: The integration should...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Instead, the integration...
+    validations:
+      required: true
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Version
+      description: Which version of Home Assistant are you running?
+      placeholder: "2024.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: integration-version
+    attributes:
+      label: Integration Version
+      description: Which version of the Arcam AVR integration?
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device Model
+      description: What Arcam AVR model are you using?
+      placeholder: "AVR11, AVR550, etc."
+    validations:
+      required: true
+
+  - type: input
+    id: firmware-version
+    attributes:
+      label: Device Firmware Version
+      description: What firmware version is your device running?
+      placeholder: "2.01, 1.15, etc."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: Installation Method
+      description: How did you install the integration?
+      options:
+        - HACS
+        - Manual installation
+        - UV package manager
+        - Other (specify in additional context)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection-type
+    attributes:
+      label: Connection Type
+      description: How is your device connected to the network?
+      options:
+        - Ethernet (wired)
+        - Wi-Fi (wireless)
+        - Unknown
+    validations:
+      required: false
+
+  - type: textarea
+    id: network-config
+    attributes:
+      label: Network Configuration
+      description: Describe your network setup (same subnet, VLANs, firewalls, etc.)
+      placeholder: |
+        - Home Assistant IP: 192.168.1.50
+        - Device IP: 192.168.1.100
+        - Same subnet: Yes/No
+        - Firewall: Yes/No
+        - Router model: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: |
+        Please include relevant Home Assistant logs. Enable debug logging first:
+        ```yaml
+        logger:
+          logs:
+            homeassistant.components.arcam_avr: debug
+        ```
+      placeholder: |
+        Paste your logs here...
+        
+        To get logs:
+        1. Settings → System → Logs
+        2. Filter by "arcam_avr"
+        3. Copy relevant entries
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Your integration configuration (remove sensitive information)
+      placeholder: |
+        Host: 192.168.1.100
+        Port: 50000
+        Zones: [1, 2]
+        Update interval: 30 seconds
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround
+      description: Have you found any workaround for this issue?
+      placeholder: Describe any temporary solutions you've found
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information that might be helpful
+      placeholder: |
+        - Screenshots
+        - Network diagrams
+        - Related issues
+        - Environment details
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have checked the troubleshooting guide
+          required: true
+        - label: I am using the latest version of the integration
+          required: true
+        - label: I have included relevant logs (if applicable)
+          required: false
+        - label: I have removed sensitive information from logs and configuration
+          required: true
