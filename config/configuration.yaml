@@ -1,0 +1,76 @@
+# Example Home Assistant configuration for Arcam AVR integration
+
+# Default configuration
+default_config:
+
+# Logger configuration
+logger:
+  default: info
+  logs:
+    homeassistant.components.arcam_avr: debug
+
+# HTTP configuration for container deployment
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+    - 127.0.0.1
+    - ::1
+
+# Arcam AVR Integration Configuration
+# This will be configured through the UI, but you can also configure via YAML:
+#
+# arcam_avr:
+#   - host: "192.168.1.100"  # Replace with your Arcam AVR IP address
+#     port: 50000            # Default Arcam control port
+#     name: "Living Room AVR" # Friendly name for the device
+#     zones: [1, 2]          # Configure zones 1 and 2
+#     update_interval: 30    # Update interval in seconds
+#     fast_polling: true     # Use faster polling when device is on
+
+# Optional: Database configuration for better performance
+# recorder:
+#   db_url: postgresql://homeassistant:password@postgresql:5432/homeassistant
+#   purge_keep_days: 7
+#   include:
+#     domains:
+#       - media_player
+#     entities:
+#       - media_player.arcam_avr
+
+# Optional: History configuration
+# history:
+#   include:
+#     domains:
+#       - media_player
+#     entities:
+#       - media_player.arcam_avr
+
+# Optional: Automation examples
+automation:
+  - alias: "Arcam AVR Welcome"
+    trigger:
+      platform: homeassistant
+      event: start
+    action:
+      service: notify.persistent_notification
+      data:
+        message: "Arcam AVR integration loaded successfully!"
+
+# Optional: Script examples
+script:
+  arcam_movie_mode:
+    alias: "Set Arcam to Movie Mode"
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.arcam_avr
+        data:
+          source: "bd"
+      - service: media_player.set_volume_level
+        target:
+          entity_id: media_player.arcam_avr
+        data:
+          volume_level: 0.7
